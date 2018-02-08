@@ -15,12 +15,25 @@ end
 function RoutesAuditHandler:init_worker()
   RoutesAuditHandler.super.init_worker(self)
 
+  local cjson = require "cjson"
   local worker_events = require "resty.worker.events"
-  local cjson = require("cjson")
+  local events = require "kong.core.events"
+  local singletons = require "kong.singletons"
 
+  local dao = singletons.dao
   local handler = function(data, event, source, pid)
     if data and data.collection == "apis" then
-      ngx.log(ngx.NOTICE, "APIs changed. Details: " .. cjson:encode(data))
+      if data.type == events.TYPES.ENTITY_CREATED then
+        -- store to custom entities
+        ngx.log(ngx.NOTICE, "Added API. ID:" .. data.entity.id)
+        local rows = dao.apis.find_all({"id":data.entity.id})
+        ngx.log(ngx.NOTICE, "Details:" .. cjson.encode(rows))
+      elseif data.type == events.TYPES.ENTITY_DELETED then
+        -- invalidate the custom entities
+        ngx.log(ngx.NOTICE, "Deleted API. ID:" .. data.entity.id)
+        local rows = dao.apis.find_all({"id":data.entity.id})
+        ngx.log(ngx.NOTICE, "Details:" .. cjson.encode(rows))
+      end
     end
   end
 
