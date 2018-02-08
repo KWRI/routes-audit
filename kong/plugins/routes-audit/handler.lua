@@ -1,12 +1,11 @@
 local BasePlugin = require "kong.plugins.base_plugin"
-
 local RoutesAuditHandler = BasePlugin:extend()
 
 RoutesAuditHandler.PRIORITY = 10
 
 -- Extend string functionalites
-string.startswith = function(self, str)
-    return self:find('^' .. str) ~= nil
+function string.starts(String,Start)
+   return string.sub(String,1,string.len(Start))==Start
 end
 
 function RoutesAuditHandler:new()
@@ -18,7 +17,7 @@ function RoutesAuditHandler:access(conf)
 
   local path = ngx.var.request_uri
   ngx.log(ngx.NOTICE, "Auditing " .. path)
-  if path.startswith('apis') then
+  if string.starts(path, '/apis') then
       -- Our hooks will pick it up
       ngx.log(ngx.NOTICE, "Skipping apis path")
   else
