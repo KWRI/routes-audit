@@ -15,8 +15,8 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
-    ["kong.plugins.jwt-claim-headers.handler"] = "handler.lua",
-    ["kong.plugins.jwt-claim-headers.schema"]  = "schema.lua",
-    ["kong.plugins.jwt-claim-headers.claim_headers"]  = "claim_headers.lua"
+    ["kong.plugins.routes-audit.handler"] = "kong/plugins/routes-audit/handler.lua",
+    ["kong.plugins.routes-audit.schema"]  = "kong/plugins/routes-audit/schema.lua",
+    ["kong.plugins.routes-audit.hooks"]  = "kong/plugins/routes-audit/hooks.lua"
   }
 }
