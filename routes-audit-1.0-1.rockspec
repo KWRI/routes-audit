@@ -15,7 +15,10 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
+    ["kong.plugins.routes-audit.migrations.cassandra"] = "kong/plugins/routes-audit/migrations/cassandra.lua",
+    ["kong.plugins.routes-audit.migrations.postgres"] = "kong/plugins/routes-audit/migrations/postgres.lua",
     ["kong.plugins.routes-audit.handler"] = "kong/plugins/routes-audit/handler.lua",
-    ["kong.plugins.routes-audit.schema"]  = "kong/plugins/routes-audit/schema.lua"
+    ["kong.plugins.routes-audit.schema"]  = "kong/plugins/routes-audit/schema.lua",
+    ["kong.plugins.routes-audit.daos"]  = "kong/plugins/routes-audit/daos.lua"
   }
 }

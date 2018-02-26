@@ -3,11 +3,6 @@ local RoutesAuditHandler = BasePlugin:extend()
 
 RoutesAuditHandler.PRIORITY = 10
 
--- Extend string functionalites
-function string.starts(String,Start)
-   return string.sub(String,1,string.len(Start))==Start
-end
-
 function RoutesAuditHandler:new()
   RoutesAuditHandler.super.new(self, "routes-audit")
 end
@@ -25,14 +20,25 @@ function RoutesAuditHandler:init_worker()
     if data and data.collection == "apis" then
       if data.type == events.TYPES.ENTITY_CREATED then
         -- store to custom entities
-        ngx.log(ngx.NOTICE, "Added API. ID:" .. data.entity.id)
-        local rows = dao.apis.find_all({"id":data.entity.id})
-        ngx.log(ngx.NOTICE, "Details:" .. cjson.encode(rows))
+        local api = dao.apis:find { id = data.entity.id }
+        if api then
+            local audit_log, err = dao.routes_audit:insert({
+              api_id = api.id,
+              name = api.name,
+              path = api.upstream_url,
+              state = "added"
+            })
+            ngx.log(ngx.NOTICE, "Added API:" .. cjson.encode(audit_log))
+        end
       elseif data.type == events.TYPES.ENTITY_DELETED then
         -- invalidate the custom entities
-        ngx.log(ngx.NOTICE, "Deleted API. ID:" .. data.entity.id)
-        local rows = dao.apis.find_all({"id":data.entity.id})
-        ngx.log(ngx.NOTICE, "Details:" .. cjson.encode(rows))
+        if data.entity.id then
+            local audit_log, err = dao.routes_audit:insert({
+              api_id = data.entity.id,
+              state = "deleted"
+            })
+            ngx.log(ngx.NOTICE, "Deleted API:" .. cjson.encode(audit_log))
+        end
       end
     end
   end
@@ -42,17 +48,6 @@ end
 
 function RoutesAuditHandler:access(conf)
   RoutesAuditHandler.super.access(self)
-
-  -- local path = ngx.var.request_uri
-  -- ngx.log(ngx.NOTICE, "Auditing " .. path)
-  -- if string.starts(path, '/apis') then
-      -- Our hooks will pick it up
-    --   ngx.log(ngx.NOTICE, "Skipping apis path")
-  -- else
-      -- We may need to hit url for notify
-      -- if we encounter missing routes
-    --   ngx.log(ngx.NOTICE, "Checking non apis path")
-  -- end
 end
 
 return RoutesAuditHandler
